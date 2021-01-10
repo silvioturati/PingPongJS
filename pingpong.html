@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Joguinho de Ping Pong</title>
+  </head>
+  <body>
+    <canvas id="folha" width="600" height="500"></canvas>
+    <script type="text/javascript">
+
+      // executar o programa do jogo a cada 30ms (30 quadros por segundo)
+      window.onload = function() {
+        iniciar();
+        setInterval(principal, 1000/30);
+      }
+
+      function iniciar(){
+        // setando todas as variaveis do jogo
+        // se deixar a declaração var na fernte do nome da variavel ela se torna uma variavel local
+        // se tirar a declaração var dentro da função, então as variaveis serão globais
+
+        // desenho inicial do campo
+        folhaDesenho = document.getElementById("folha");
+        areaDesenho = folhaDesenho.getContext("2d");
+
+        // definindo variaveis para o Joguo
+        larguraCampo = 600;
+        alturaCampo = 500;
+        larguraLinha = 5;
+        larguraBola = 5;
+        espessuraRaquete = 5;
+        alturaRaquete = 50;
+        posicaoJogador1 = 225;
+        posicaoJogador2 = 225;
+        posicaoBolaX = posicaoBolaY = 10;
+        pontoJogador1 = pontoJogador2 = 0;
+
+        // alterando as variaveis abaixo, alteramos a dificuldade do jogo
+        velocidadeBolaPosicaoX = velocidadeBolaPosicaoY = 6;
+        efeitoRaquete = 0.3;
+        velocidadeJogador2 = 3;
+
+        // movendo a raquete do jogador humano
+        folhaDesenho.addEventListener('mousemove', function(e){
+          posicaoJogador1 = e.clientY - alturaRaquete / 2;
+        });
+      } // fim da função iniciar
+
+      function principal(){
+        desenhar();
+        calcular();
+      } // fim da função principal
+
+      function desenhar(){
+        // cor da mesa
+        areaDesenho.fillStyle = '#286047';
+        // definindo ponto inicial (x e y) e tamanho que no caso foi igual ao canvas
+        areaDesenho.fillRect(0, 0, larguraCampo, alturaCampo);
+
+        // cor para a redinha e da bola
+        areaDesenho.fillStyle = '#ffffff';
+        // definindo a redinha do meio - posção (x e Y) e tamanho (largura e altura)
+        areaDesenho.fillRect((larguraCampo/2 - larguraLinha/2), 0, larguraLinha, alturaCampo);
+
+        // definindo a raquete esquerda
+        areaDesenho.fillRect(0, posicaoJogador1, espessuraRaquete, alturaRaquete);
+        // definindo a raquete direita
+        areaDesenho.fillRect((larguraCampo - espessuraRaquete), posicaoJogador2, espessuraRaquete, alturaRaquete);
+
+        // escrevendo a pontuação
+        areaDesenho.fillText("Humano: " + pontoJogador1, 115, 30);
+        areaDesenho.fillText("Computador: " + pontoJogador2, larguraCampo - 180, 30);
+
+        // definindo a bola
+        areaDesenho.fillRect((posicaoBolaX - larguraBola/2), (posicaoBolaY - larguraBola/2), larguraBola, larguraBola);
+      }
+
+      function calcular(){
+        posicaoBolaX = posicaoBolaX + velocidadeBolaPosicaoX;
+        posicaoBolaY = posicaoBolaY + velocidadeBolaPosicaoY;
+
+        // verifica lateral superior
+        if(posicaoBolaY < 0 && velocidadeBolaPosicaoY < 0){
+          velocidadeBolaPosicaoY = -velocidadeBolaPosicaoY;
+        }
+
+        // verifica lateral inferior
+        if(posicaoBolaY > alturaCampo && velocidadeBolaPosicaoY > 0){
+          velocidadeBolaPosicaoY = -velocidadeBolaPosicaoY;
+        }
+
+        // verifica se o Jogador 2 fez um ponto
+        if(posicaoBolaX < 0){
+          if(posicaoBolaY > posicaoJogador1 && posicaoBolaY < posicaoJogador1 + alturaRaquete){
+            // rebate a bola
+            velocidadeBolaPosicaoX = -velocidadeBolaPosicaoX;
+
+            // efeito na rebatida
+            var diferencaY = posicaoBolaY - (posicaoJogador1 + alturaRaquete / 2);
+            velocidadeBolaPosicaoY = diferencaY * efeitoRaquete;
+          } else {
+                  // marca ponto para o jogador 2
+                  pontoJogador2++;
+                  // restart do jogo com a bola no centro
+                  continuar();
+          }
+        } // fim da verificação se o Jogador 2 fez um ponto
+
+        // verifica se o Jogador 1 fez um ponto
+        if(posicaoBolaX > larguraCampo){
+          if(posicaoBolaY > posicaoJogador2 && posicaoBolaY < posicaoJogador2 + alturaRaquete){
+            // rebate a bola
+            velocidadeBolaPosicaoX = -velocidadeBolaPosicaoX;
+
+            // efeito na rebatida
+            var diferencaY = posicaoBolaY - (posicaoJogador2 + alturaRaquete / 2);
+            velocidadeBolaPosicaoY = diferencaY * efeitoRaquete;
+          } else {
+                  // marca ponto para o jogador 1
+                  pontoJogador1++;
+                  continuar();
+          }
+        } // fim da verificação se o Jogador 1 fez um ponto
+
+        // movimenta raquete do Computador
+        if((posicaoJogador2 + alturaRaquete / 2) < posicaoBolaY){
+          posicaoJogador2 = posicaoJogador2 + velocidadeJogador2;
+        } else {
+                posicaoJogador2 = posicaoJogador2 - velocidadeJogador2;
+        } // fim do movimenta raquete do Computador
+
+      } //fim da função executar
+
+      function continuar(){
+        // após o ponto restart do jogo com a bola no centro
+        posicaoBolaX = larguraCampo / 2;
+        posicaoBolaY = alturaCampo / 2;
+        velocidadeBolaPosicaoX = -velocidadeBolaPosicaoX;
+        velocidadeBolaPosicaoY = velocidadeBolaPosicaoY;
+      }
+    </script>
+  </body>
+</html>
